@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zenith View Schools UTME & O'Level Prep</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); color: white; min-height: 100vh; }
+        .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 16px; }
+        .btn-primary { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: #1e3a8a; padding: 12px 24px; border-radius: 8px; font-weight: bold; }
+        .btn-primary:hover { transform: scale(1.05); }
+        .option-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 16px; margin: 8px 0; border-radius: 8px; cursor: pointer; }
+        .option-card:hover { background: rgba(255,255,255,0.1); border-color: #fbbf24; }
+        .option-card.selected { background: #3b82f6; }
+        .timer-box { background: rgba(239, 68, 68, 0.2); border: 2px solid #ef4444; padding: 12px 24px; border-radius: 8px; font-size: 24px; font-weight: bold; }
+        .subject-card { background: linear-gradient(135deg, rgba(30, 58, 138, 0.6), rgba(30, 41, 59, 0.8)); border: 1px solid rgba(251, 191, 36, 0.2); padding: 24px; border-radius: 12px; cursor: pointer; transition: all 0.3s; }
+        .subject-card:hover { transform: translateY(-5px); border-color: #fbbf24; }
+        .novel-badge { background: #8b5cf6; padding: 4px 12px; border-radius: 20px; font-size: 11px; }
+        .admin-badge { background: #ef4444; padding: 4px 12px; border-radius: 20px; font-size: 11px; }
+        .ad-banner { background: rgba(0,0,0,0.3); border: 2px dashed rgba(251,191,36,0.5); padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0; }
+        .hidden { display: none !important; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        th { background: rgba(251, 191, 36, 0.2); }
+        .progress-bar { background: rgba(255,255,255,0.1); height: 8px; border-radius: 4px; }
+        .progress-fill { background: linear-gradient(90deg, #fbbf24, #f59e0b); height: 100%; }
+    </style>
+</head>
+<body class="p-4">
+    <!-- Admin Access Button -->
+    <button onclick="showAdminLogin()" class="fixed top-4 right-4 z-50 w-10 h-10 bg-red-600 rounded-full opacity-20 hover:opacity-100 transition-opacity" title="Admin"></button>
+
+    <!-- Admin Login Modal -->
+    <div id="admin-login" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+        <div class="glass p-6 max-w-md w-full">
+            <h3 class="text-xl font-bold mb-4">Admin Access</h3>
+            <input type="password" id="admin-pass" placeholder="Password" class="w-full p-3 mb-4 bg-gray-800 rounded border">
+            <div class="flex gap-2">
+                <button onclick="checkAdmin()" class="btn-primary flex-1">Access</button>
+                <button onclick="closeAdminLogin()" class="px-4 py-2 bg-gray-700 rounded">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Internet Check -->
+    <div id="offline-msg" class="hidden fixed inset-0 bg-black/90 z-50 flex items-center justify-center text-center p-8">
+        <div>
+            <i class="fas fa-wifi text-6xl text-red-400 mb-4"></i>
+            <h2 class="text-2xl font-bold">Internet Required</h2>
+            <p class="text-gray-400">Connect to internet to use this app</p>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="glass p-4 mb-6 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <div class="w-12 h-12 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center">
+                <i class="fas fa-graduation-cap text-2xl text-blue-900"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg">Zenith View Schools</h1>
+                <p class="text-xs text-amber-400">UTME & O'Level Prep</p>
+            </div>
+        </div>
+        <div id="user-info" class="hidden flex items-center gap-3">
+            <span id="user-name" class="text-sm"></span>
+            <button onclick="logout()" class="text-gray-400 hover:text-white"><i class="fas fa-sign-out-alt"></i></button>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto">
+        <!-- Ad Banner -->
+        <div class="ad-banner">
+            <p class="text-sm text-gray-400">Advertisement Space</p>
+            <p class="text-amber-400 font-bold">Your AdSense Code Here</p>
+        </div>
+
+        <!-- AUTH VIEW -->
+        <div id="auth-view" class="max-w-md mx-auto">
+            <div class="glass p-8">
+                <div class="text-center mb-6">
+                    <i class="fas fa-graduation-cap text-6xl text-amber-400 mb-4"></i>
+                    <h2 class="text-2xl font-bold">Student Login</h2>
+                    <p class="text-gray-400 text-sm">8 Subjects • 40 Questions Each • Free Access</p>
+                </div>
+                <div class="flex mb-4 bg-gray-800 rounded-lg p-1">
+                    <button onclick="switchTab('register')" id="tab-reg" class="flex-1 py-2 rounded-md bg-blue-600">Register</button>
+                    <button onclick="switchTab('login')" id="tab-log" class="flex-1 py-2 rounded-md">Login</button>
+                </div>
+                <div id="reg-form">
+                    <input type="text" id="r-name" placeholder="Full Name" class="w-full p-3 mb-3 bg-gray-800/50 rounded border">
+                    <input type="email" id="r-email" placeholder="Email" class="w-full p-3 mb-3 bg-gray-800/50 rounded border">
+                    <input type="tel" id="r-phone" placeholder="Phone Number" class="w-full p-3 mb-3 bg-gray-800/50 rounded border">
+                    <input type="password" id="r-pass" placeholder="Create Password" class="w-full p-3 mb-4 bg-gray-800/50 rounded border">
+                    <button onclick="register()" class="w-full btn-primary">Create Account</button>
+                </div>
+                <div id="log-form" class="hidden">
+                    <input type="email" id="l-email" placeholder="Email" class="w-full p-3 mb-3 bg-gray-800/50 rounded border">
+                    <input type="password" id="l-pass" placeholder="Password" class="w-full p-3 mb-4 bg-gray-800/50 rounded border">
+                    <button onclick="login()" class="w-full btn-primary">Login</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- DASHBOARD -->
+        <div id="dash-view" class="hidden">
+            <div class="glass p-6 mb-6">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold">Welcome, <span id="d-name"></span>!</h2>
+                        <p class="text-gray-400 text-sm">Select a subject to start (40 questions, 60 minutes)</p>
+                    </div>
+                    <button onclick="showSubjects()" class="btn-primary"><i class="fas fa-play mr-2"></i>Start Exam</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="glass p-4 text-center">
+                    <div id="s-exams" class="text-3xl font-bold text-amber-400">0</div>
+                    <div class="text-xs text-gray-400">Exams Taken</div>
+                </div>
+                <div class="glass p-4 text-center">
+                    <div id="s-avg" class="text-3xl font-bold text-green-400">0%</div>
+                    <div class="text-xs text-gray-400">Average Score</div>
+                </div>
+                <div class="glass p-4 text-center">
+                    <div id="s-qs" class="text-3xl font-bold text-blue-400">0</div>
+                    <div class="text-xs text-gray-400">Questions</div>
+                </div>
+                <div class="glass p-4 text-center">
+                    <div id="s-time" class="text-3xl font-bold text-purple-400">0</div>
+                    <div class="text-xs text-gray-400">Minutes Used</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SUBJECT SELECTION -->
+        <div id="sub-view" class="hidden">
+            <h2 class="text-2xl font-bold text-center mb-2">Select Subject</h2>
+            <p class="text-center text-gray-400 mb-6">40 questions • 60 minutes • Shuffled from 100+ bank</p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="sub-grid"></div>
+            <button onclick="showDash()" class="mt-6 px-6 py-2 bg-gray-700 rounded-lg">Back</button>
+        </div>
+
+        <!-- EXAM VIEW -->
+        <div id="exam-view" class="hidden">
+            <div class="glass p-4 mb-4 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <div id="timer-box" class="timer-box">60:00</div>
+                    <div>
+                        <div class="text-sm text-gray-400">Time Left</div>
+                        <div id="sub-name" class="text-amber-400 font-bold"></div>
+                    </div>
+                </div>
+                <div class="text-2xl font-bold"><span id="q-curr">1</span>/<span id="q-total">40</span></div>
+            </div>
+
+            <div class="progress-bar mb-6">
+                <div id="progress" class="progress-fill" style="width: 2.5%"></div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div class="lg:col-span-3">
+                    <div class="glass p-6 min-h-[400px]">
+                        <div class="flex items-center gap-2 mb-4">
+                            <span id="q-topic" class="px-3 py-1 bg-blue-600 rounded-full text-xs">Topic</span>
+                            <span id="novel-badge" class="novel-badge hidden"><i class="fas fa-book mr-1"></i>The Lekki Headmaster</span>
+                        </div>
+                        <h3 id="q-text" class="text-xl mb-6 font-semibold"></h3>
+                        <div id="options" class="space-y-3"></div>
+                        
+                        <div class="flex justify-between mt-8">
+                            <button id="btn-prev" onclick="prevQ()" class="px-6 py-2 bg-gray-700 rounded-lg disabled:opacity-50" disabled>Previous</button>
+                            <button id="btn-next" onclick="nextQ()" class="btn-primary">Next</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="lg:col-span-1">
+                    <div class="glass p-4">
+                        <h4 class="font-bold mb-3 text-sm">Question Navigator</h4>
+                        <div id="nav-grid" class="grid grid-cols-5 gap-2"></div>
+                        <button onclick="submitExam()" class="w-full mt-4 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-bold">Submit Exam</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESULTS VIEW -->
+        <div id="res-view" class="hidden">
+            <div class="glass p-8 text-center max-w-2xl mx-auto">
+                <i class="fas fa-trophy text-6xl text-amber-400 mb-4"></i>
+                <h2 class="text-3xl font-bold mb-2">Exam Complete!</h2>
+                <p id="res-sub" class="text-xl text-gray-400 mb-6"></p>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-gray-800/50 p-4 rounded-lg">
+                        <div class="text-3xl font-bold text-amber-400" id="res-score">0</div>
+                        <div class="text-xs text-gray-400">Score</div>
+                    </div>
+                    <div class="bg-gray-800/50 p-4 rounded-lg">
+                        <div class="text-3xl font-bold text-blue-400" id="res-perc">0%</div>
+                        <div class="text-xs text-gray-400">Percentage</div>
+                    </div>
+                    <div class="bg-gray-800/50 p-4 rounded-lg">
+                        <div class="text-3xl font-bold text-green-400" id="res-correct">0</div>
+                        <div class="text-xs text-gray-400">Correct</div>
+                    </div>
+                    <div class="bg-gray-800/50 p-4 rounded-lg">
+                        <div class="text-3xl font-bold text-purple-400" id="res-time">0m</div>
+                        <div class="text-xs text-gray-400">Time Used</div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-center gap-4 mb-6">
+                    <button onclick="reviewExam()" class="px-6 py-2 bg-blue-600 rounded-lg">Review Answers</button>
+                    <button onclick="showDash()" class="btn-primary">Back to Dashboard</button>
+                </div>
+                
+                <div id="review-sec" class="hidden text-left"></div>
+            </div>
+        </div>
+
+        <!-- ADMIN VIEW -->
+        <div id="admin-view" class="hidden">
+            <div class="glass p-6 mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold"><i class="fas fa-shield-alt text-red-400 mr-2"></i>Admin Panel</h2>
+                    <button onclick="closeAdmin()" class="text-gray-400 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+                </div>
+                
+                <div class="grid grid-cols-3 gap-4 mb-6">
+                    <div class="bg-gray-800/50 p-4 rounded-lg text-center">
+                        <div id="admin-users" class="text-2xl font-bold text-blue-400">0</div>
+                        <div class="text-xs text-gray-400">Total Users</div>
+                    </div>
+                    <div class="bg-gray-800/50 p-4 rounded-lg text-center">
+                        <div id="admin-exams" class="text-2xl font-bold text-green-400">0</div>
+                        <div class="text-xs text-gray-400">Total Exams</div>
+                    </div>
+                    <div class="bg-gray-800/50 p-4 rounded-lg text-center">
+                        <div id="admin-avg" class="text-2xl font-bold text-amber-400">0%</div>
+                        <div class="text-xs text-gray-400">Avg Score</div>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Password</th>
+                                <th>Exams</th>
+                                <th>Avg Score</th>
+                                <th>Last Active</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Sample Question Database (Add your full questions here)
+        const questionDB = {
+            english: {
+                general: [
+                    {q: "Choose the word nearest in meaning to BENEVOLENT", options: ["Wicked", "Kind", "Cruel", "Selfish"], a: 1, topic: "Lexis"},
+                    {q: "The boy was accused of stealing the woman's _____", options: ["bag", "bags", "bag's", "bags'"], a: 0, topic: "Grammar"},
+                    // Add 28 more general questions
+                ],
+                novel: [
+                    {q: "Who is the protagonist in 'The Lekki Headmaster'?", options: ["Mr. Bepo", "Mrs. Bepo", "The Student", "The Governor"], a: 0, topic: "Novel", chapter: 1},
+                    // Add 9 more novel questions
+                ]
+            },
+            mathematics: [
+                {q: "If 2x + 4 = 10, find x", options: ["2", "3", "4", "5"], a: 1, topic: "Algebra"},
+                {q: "What is the value of π (pi) to 2 decimal places?", options: ["3.12", "3.14", "3.16", "3.18"], a: 1, topic: "Geometry"},
+                // Add 28 more questions
+            ],
+            physics: [
+                {q: "What is the SI unit of force?", options: ["Watt", "Newton", "Joule", "Pascal"], a: 1, topic: "Mechanics"},
+                // Add 29 more questions
+            ],
+            chemistry: [
+                {q: "What is the chemical symbol for Gold?", options: ["Go", "Gd", "Au", "Ag"], a: 2, topic: "Elements"},
+                // Add 29 more questions
+            ],
+            biology: [
+                {q: "Which organelle is known as the powerhouse of the cell?", options: ["Nucleus", "Mitochondria", "Ribosome", "Chloroplast"], a: 1, topic: "Cell Biology"},
+                // Add 29 more questions
+            ],
+            government: [
+                {q: "Which system of government is practiced in Nigeria?", options: ["Monarchy", "Federalism", "Unitary", "Confederation"], a: 1, topic: "Systems of Government"},
+                // Add 29 more questions
+            ],
+            literature: [
+                {q: "A literary work that evokes pity and fear is called?", options: ["Comedy", "Tragedy", "Satire", "Epic"], a: 1, topic: "Drama"},
+                // Add 29 more questions
+            ],
+            accounting: [
+                {q: "The excess of current assets over current liabilities is called?", options: ["Working Capital", "Fixed Capital", "Share Capital", "Loan Capital"], a: 0, topic: "Financial Statements"},
+                // Add 29 more questions (or 199 more as you mentioned 200+)
+            ]
+        };
+
+        let currentUser = null, currentExam = null, currentQ = 0, answers = {}, timer = null, timeLeft = 3600;
+        
+        // INTERNET CHECK
+        function checkInternet() {
+            if (!navigator.onLine) {
+                document.getElementById('offline-msg').classList.remove('hidden');
+                return false;
+            }
+            document.getElementById('offline-msg').classList.add('hidden');
+            return true;
+        }
+        window.addEventListener('online', () => document.getElementById('offline-msg').classList.add('hidden'));
+        window.addEventListener('offline', () => document.getElementById('offline-msg').classList.remove('hidden'));
+        setInterval(checkInternet, 5000);
+
+        // AUTH FUNCTIONS
+        function switchTab(tab) {
+            document.getElementById('reg-form').classList.toggle('hidden', tab !== 'register');
+            document.getElementById('log-form').classList.toggle('hidden', tab !== 'login');
+            document.getElementById('tab-reg').className = 'flex-1 py-2 rounded-md ' + (tab === 'register' ? 'bg-blue-600' : '');
+            document.getElementById('tab-log').className = 'flex-1 py-2 rounded-md ' + (tab === 'login' ? 'bg-blue-600' : '');
+        }
+
+        function register() {
+            const name = document.getElementById('r-name').value;
+            const email = document.getElementById('r-email').value;
+            const phone = document.getElementById('r-phone').value;
+            const pass = document.getElementById('r-pass').value;
+            
+            if (!name || !email || !pass) { alert('Fill all fields'); return; }
+            if (!email.includes('@')) { alert('Enter valid email'); return; }
+            
+            const user = { name, email, phone, pass, exams: 0, totalQ: 0, correct: 0, time: 0, history: {} };
+            localStorage.setItem('user_' + email, JSON.stringify(user));
+            currentUser = user;
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            startApp();
+        }
+
+        function login() {
+            const email = document.getElementById('l-email').value;
+            const pass = document.getElementById('l-pass').value;
+            const saved = localStorage.getItem('user_' + email);
+            
+            if (!saved) { alert('Account not found'); return; }
+            
+            const user = JSON.parse(saved);
+            if (user.pass !== pass) { alert('Wrong password'); return; }
+            
+            currentUser = user;
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            startApp();
+        }
+
+        function logout() { 
+            currentUser = null; 
+            localStorage.removeItem('currentUser');
+            location.reload(); 
+        }
+
+        function startApp() {
+            document.getElementById('auth-view').classList.add('hidden');
+            document.getElementById('dash-view').classList.remove('hidden');
+            document.getElementById('user-info').classList.remove('hidden');
+            document.getElementById('user-name').textContent = currentUser.name;
+            document.getElementById('d-name').textContent = currentUser.name;
+            updateStats();
+        }
+
+        function updateStats() {
+            document.getElementById('s-exams').textContent = currentUser.exams;
+            document.getElementById('s-qs').textContent = currentUser.totalQ;
+            document.getElementById('s-time').textContent = currentUser.time;
+            const avg = currentUser.totalQ > 0 ? Math.round((currentUser.correct / currentUser.totalQ) * 100) : 0;
+            document.getElementById('s-avg').textContent = avg + '%';
+        }
+
+        // NAVIGATION
+        function showDash() { hideAll(); document.getElementById('dash-view').classList.remove('hidden'); }
+        function showSubjects() { 
+            if (!checkInternet()) return;
+            hideAll(); 
+            document.getElementById('sub-view').classList.remove('hidden'); 
+            renderSubjects(); 
+        }
+        function hideAll() {
+            ['auth-view', 'dash-view', 'sub-view', 'exam-view', 'res-view', 'admin-view'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+        }
+
+        const subjects = [
+            {id: 'english', name: 'Use of English', icon: 'fa-book', color: 'text-purple-400', hasNovel: true},
+            {id: 'mathematics', name: 'Mathematics', icon: 'fa-calculator', color: 'text-blue-400'},
+            {id: 'physics', name: 'Physics', icon: 'fa-atom', color: 'text-green-400'},
+            {id: 'chemistry', name: 'Chemistry', icon: 'fa-flask', color: 'text-red-400'},
+            {id: 'biology', name: 'Biology', icon: 'fa-dna', color: 'text-emerald-400'},
+            {id: 'government', name: 'Government', icon: 'fa-landmark', color: 'text-amber-400'},
+            {id: 'literature', name: 'Literature', icon: 'fa-feather-alt', color: 'text-rose-400'},
+            {id: 'accounting', name: 'Accounting', icon: 'fa-file-invoice-dollar', color: 'text-indigo-400'}
+        ];
+
+        function renderSubjects() {
+            const grid = document.getElementById('sub-grid');
+            grid.innerHTML = subjects.map(sub => `
+                <div onclick="startExam('${sub.id}')" class="subject-card">
+                    <i class="fas ${sub.icon} text-3xl ${sub.color} mb-2"></i>
+                    <h3 class="font-bold text-sm">${sub.name}</h3>
+                    <p class="text-xs text-gray-400">40 Questions</p>
+                    ${sub.hasNovel ? '<span class="novel-badge mt-2 inline-block">Novel</span>' : ''}
+                </div>
+            `).join('');
+        }
+
+        // EXAM FUNCTIONS
+        function startExam(subject) {
+            if (!checkInternet()) return;
+            
+            // Check if enough questions exist
+            let availableQs = [];
+            if (subject === 'english') {
+                availableQs = [...questionDB.english.general, ...questionDB.english.novel];
+            } else {
+                availableQs = questionDB[subject] || [];
+            }
+            
+            if (availableQs.length < 40) {
+                alert(`Not enough questions in database for ${subject}. Please add more questions.`);
+                return;
+            }
+            
+            currentExam = {
+                subject: subjects.find(s => s.id === subject),
+                questions: getQuestions(subject)
+            };
+            
+            currentQ = 0; answers = {}; timeLeft = 3600;
+            
+            document.getElementById('sub-name').textContent = currentExam.subject.name;
+            
+            hideAll();
+            document.getElementById('exam-view').classList.remove('hidden');
+            
+            renderNav();
+            loadQuestion(0);
+            startTimer();
+        }
+
+        function getQuestions(subject) {
+            const bank = questionDB[subject];
+            let allQ = [];
+            
+            if (subject === 'english') {
+                allQ = [...bank.general, ...bank.novel];
+            } else {
+                allQ = [...bank];
+            }
+            
+            // Shuffle and take 40
+            const shuffled = allQ.sort(() => Math.random() - 0.5);
+            return shuffled.slice(0, 40);
+        }
+
+        function startTimer() {
+            updateTimer();
+            timer = setInterval(() => {
+                timeLeft--;
+                updateTimer();
+                if (timeLeft <= 0) { clearInterval(timer); submitExam(); }
+            }, 1000);
+        }
+
+        function updateTimer() {
+            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const s = (timeLeft % 60).toString().padStart(2, '0');
+            document.getElementById('timer-box').textContent = m + ':' + s;
+        }
+
+        function loadQuestion(idx) {
+            currentQ = idx;
+            const q = currentExam.questions[idx];
+            
+            document.getElementById('q-curr').textContent = idx + 1;
+            document.getElementById('q-topic').textContent = q.topic;
+            document.getElementById('q-text').textContent = (idx + 1) + '. ' + q.q;
+            
+            const isNovel = q.chapter || (q.topic && q.topic.includes('Novel'));
+            document.getElementById('novel-badge').classList.toggle('hidden', !isNovel);
+            
+            const opts = document.getElementById('options');
+            opts.innerHTML = '';
+            const labels = ['A', 'B', 'C', 'D'];
+            
+            q.options.forEach((opt, i) => {
+                const div = document.createElement('div');
+                div.className = 'option-card ' + (answers[idx] === i ? 'selected' : '');
+                div.innerHTML = '<strong>' + labels[i] + '.</strong> ' + opt;
+                div.onclick = () => selectOption(i);
+                opts.appendChild(div);
+            });
+            
+            document.getElementById('btn-prev').disabled = idx === 0;
+            document.getElementById('btn-next').textContent = idx === 39 ? 'Submit' : 'Next';
+            
+            document.getElementById('progress').style.width = ((idx + 1) / 40 * 100) + '%';
+            updateNav();
+        }
+
+        function selectOption(i) {
+            answers[currentQ] = i;
+            loadQuestion(currentQ);
+        }
+
+        function nextQ() {
+            if (currentQ < 39) loadQuestion(currentQ + 1);
+            else submitExam();
+        }
+
+        function prevQ() {
+            if (currentQ > 0) loadQuestion(currentQ - 1);
+        }
+
+        function renderNav() {
+            const grid = document.getElementById('nav-grid');
+            grid.innerHTML = '';
+            for (let i = 0; i < 40; i++) {
+                const btn = document.createElement('button');
+                btn.id = 'nav-' + i;
+                btn.className = 'w-8 h-8 rounded text-xs font-bold ';
+                btn.textContent = i + 1;
+                btn.onclick = () => loadQuestion(i);
+                grid.appendChild(btn);
+            }
+        }
+
+        function updateNav() {
+            for (let i = 0; i < 40; i++) {
+                const btn = document.getElementById('nav-' + i);
+                const q = currentExam.questions[i];
+                const isNovel = q.chapter || (q.topic && q.topic.includes('Novel'));
+                
+                if (i === currentQ) btn.className = 'w-8 h-8 rounded text-xs font-bold bg-blue-600';
+                else if (answers[i] !== undefined) btn.className = 'w-8 h-8 rounded text-xs font-bold bg-green-600';
+                else if (isNovel) btn.className = 'w-8 h-8 rounded text-xs font-bold bg-purple-600';
+                else btn.className = 'w-8 h-8 rounded text-xs font-bold bg-gray-700';
+            }
+        }
+
+        function submitExam() {
+            clearInterval(timer);
+            
+            let correct = 0, answered = 0;
+            currentExam.questions.forEach((q, i) => {
+                if (answers[i] !== undefined) {
+                    answered++;
+                    if (answers[i] === q.a) correct++;
+                }
+            });
+            
+            const timeUsed = Math.floor((3600 - timeLeft) / 60);
+            const score = Math.round(correct * 2.5);
+            const perc = Math.round((correct / 40) * 100);
+            
+            currentUser.exams++;
+            currentUser.totalQ += 40;
+            currentUser.correct += correct;
+            currentUser.time += timeUsed;
+            localStorage.setItem('user_' + currentUser.email, JSON.stringify(currentUser));
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            document.getElementById('res-sub').textContent = currentExam.subject.name;
+            document.getElementById('res-score').textContent = score;
+            document.getElementById('res-perc').textContent = perc + '%';
+            document.getElementById('res-time').textContent = timeUsed + 'm';
+            document.getElementById('res-correct').textContent = correct;
+            
+            hideAll();
+            document.getElementById('res-view').classList.remove('hidden');
+        }
+
+        function reviewExam() {
+            const sec = document.getElementById('review-sec');
+            sec.classList.remove('hidden');
+            sec.innerHTML = '<h3 class="text-xl font-bold text-amber-400 mb-4">Review</h3>';
+            
+            currentExam.questions.forEach((q, i) => {
+                const userAns = answers[i];
+                const isCorrect = userAns === q.a;
+                const status = userAns === undefined ? 'text-gray-400' : (isCorrect ? 'text-green-400' : 'text-red-400');
+                const icon = userAns === undefined ? 'fa-minus' : (isCorrect ? 'fa-check' : 'fa-times');
+                
+                sec.innerHTML += `
+                    <div class="glass p-4 mb-2">
+                        <div class="flex items-start gap-2">
+                            <i class="fas ${icon} ${status} mt-1"></i>
+                            <div>
+                                <div class="text-sm text-blue-400 mb-1">${q.topic}</div>
+                                <div class="mb-2">${i+1}. ${q.q}</div>
+                                <div class="text-sm space-y-1">
+                                    ${q.options.map((opt, idx) => `
+                                        <div class="${idx === q.a ? 'text-green-400 font-bold' : ''} ${idx === userAns && idx !== q.a ? 'text-red-400 line-through' : ''}">
+                                            ${String.fromCharCode(65+idx)}. ${opt} ${idx === q.a ? '(Correct)' : ''}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // ADMIN FUNCTIONS
+        function showAdminLogin() {
+            document.getElementById('admin-login').classList.remove('hidden');
+        }
+
+        function closeAdminLogin() {
+            document.getElementById('admin-login').classList.add('hidden');
+        }
+
+        function checkAdmin() {
+            const pass = document.getElementById('admin-pass').value;
+            if (pass === 'PrinceOden2024') {
+                closeAdminLogin();
+                showAdmin();
+            } else {
+                alert('Wrong password');
+            }
+        }
+
+        function showAdmin() {
+            hideAll();
+            document.getElementById('admin-view').classList.remove('hidden');
+            loadAdminData();
+        }
+
+        function closeAdmin() {
+            document.getElementById('admin-view').classList.add('hidden');
+            showDash();
+        }
+
+        function loadAdminData() {
+            const users = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('user_')) {
+                    const user = JSON.parse(localStorage.getItem(key));
+                    users.push(user);
+                }
+            }
+            
+            document.getElementById('admin-users').textContent = users.length;
+            document.getElementById('admin-exams').textContent = users.reduce((a, b) => a + b.exams, 0);
+            
+            const totalQ = users.reduce((a, b) => a + b.totalQ, 0);
+            const totalCorrect = users.reduce((a, b) => a + b.correct, 0);
+            const avg = totalQ > 0 ? Math.round((totalCorrect / totalQ) * 100) : 0;
+            document.getElementById('admin-avg').textContent = avg + '%';
+            
+            const tbody = document.getElementById('admin-tbody');
+            tbody.innerHTML = users.map(u => `
+                <tr>
+                    <td>${u.name}</td>
+                    <td>${u.email}</td>
+                    <td>${u.pass}</td>
+                    <td>${u.exams}</td>
+                    <td>${u.totalQ > 0 ? Math.round((u.correct/u.totalQ)*100) : 0}%</td>
+                    <td>${new Date().toLocaleDateString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        // INIT
+        document.addEventListener('DOMContentLoaded', () => {
+            checkInternet();
+            const saved = localStorage.getItem('currentUser');
+            if (saved) {
+                currentUser = JSON.parse(saved);
+                startApp();
+            }
+        });
+    </script>
+</body>
+</html>
